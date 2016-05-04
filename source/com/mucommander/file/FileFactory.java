@@ -137,6 +137,9 @@ public class FileFactory {
         registerArchiveFormat(new com.mucommander.file.impl.iso.IsoFormatProvider());
         registerArchiveFormat(new com.mucommander.file.impl.ar.ArFormatProvider());
         registerArchiveFormat(new com.mucommander.file.impl.lst.LstFormatProvider());
+        
+        // lha append 
+        registerArchiveFormat(new com.mucommander.file.impl.lha.LhaFormatProvider());
 
         // Register this provider only if running Java 1.5 or up as it uses the Java 1.5 API
         if(JavaVersions.JAVA_1_5.isCurrentOrHigher())

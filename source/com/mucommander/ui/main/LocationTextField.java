@@ -114,7 +114,7 @@ public class LocationTextField extends ProgressTextField implements LocationList
 			public void OnEscPressed(KeyEvent keyEvent) {
 				textFieldCancelled();
 			}
-        }, CompleterFactory.getLocationCompleter());
+        }, CompleterFactory.getLocationCompleter(), true);
     }
 
     /**

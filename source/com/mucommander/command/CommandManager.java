@@ -34,8 +34,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
 
 /**
@@ -83,7 +87,7 @@ public class CommandManager implements CommandBuilder {
     // - Commands definition ---------------------------------------------------
     // -------------------------------------------------------------------------
     /** All known commands. */
-    private static       Hashtable    commands;
+    private static       Map          commands;
     /** Path to the custom commands XML file, <code>null</code> if the default one should be used. */
     private static       AbstractFile commandsFile;
     /** Whether the custom commands have been modified since the last time they were saved. */
@@ -103,7 +107,7 @@ public class CommandManager implements CommandBuilder {
     static {
         systemAssociations = new Vector();
         associations       = new Vector();
-        commands           = new Hashtable();
+        commands           = new TreeMap();
         defaultCommand     = null;
     }
 
@@ -190,6 +194,29 @@ public class CommandManager implements CommandBuilder {
         return null;
     }
 
+    /**
+     * If the matched command is in associations, only the command is returned and all the
+     * commands are returned in case of not being.
+     * @param  file         file for which the opening command must be returned.
+     * @return              commands
+     */
+    public static Iterator getCommandsForFile(AbstractFile file) {
+        List list = new ArrayList(commands.size()*2);
+
+        CommandAssociation association;
+
+        for(Iterator iterator=associations.iterator(); iterator.hasNext();){
+            if((association = (CommandAssociation)iterator.next()).accept(file)){
+                list.add(association.getCommand());
+            }
+
+        }
+        if(list.size() > 0 ){
+            return list.iterator();
+        }
+        return commands.values().iterator();
+    }
+       
     /**
      * Returns an iterator on all registered commands.
      * @return an iterator on all registered commands.

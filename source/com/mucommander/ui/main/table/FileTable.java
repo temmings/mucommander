@@ -19,6 +19,7 @@
 package com.mucommander.ui.main.table;
 
 import com.mucommander.Debug;
+import com.mucommander.PlatformManager;
 import com.mucommander.conf.ConfigurationEvent;
 import com.mucommander.conf.ConfigurationListener;
 import com.mucommander.conf.impl.MuConfiguration;
@@ -33,6 +34,7 @@ import com.mucommander.text.CustomDateFormat;
 import com.mucommander.text.Translator;
 import com.mucommander.ui.action.ActionKeymap;
 import com.mucommander.ui.action.ActionManager;
+import com.mucommander.ui.action.StartQuickSearchAction;
 import com.mucommander.ui.dialog.file.FileCollisionDialog;
 import com.mucommander.ui.dialog.file.ProgressDialog;
 import com.mucommander.ui.event.ActivePanelListener;
@@ -49,11 +51,18 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+
+import org.monazilla.migemo.Migemo;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -138,6 +147,19 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
     /** 'Mark/unmark selected file' action */
     private final static Class MARK_ACTION_CLASS = com.mucommander.ui.action.MarkSelectedFileAction.class;
 
+    /** Migemo setting */
+    public static boolean migemoLoaded = false;
+    static {
+		try {
+			AbstractFile migemoDict = PlatformManager.getPreferencesFolder().getChild("migemo-dict");
+			//System.out.println("migemo-dict : " + migemoDict);
+			if (!migemoLoaded && Migemo.loadDictionary(new File(migemoDict.getAbsolutePath()))) {
+				migemoLoaded = true;
+			}
+		} catch (IOException ioe) {
+			// 
+		}
+	}
 
     public FileTable(MainFrame mainFrame, FolderPanel folderPanel, FileTableConfiguration conf) {
         super(new FileTableModel(), new FileTableColumnModel(conf));
@@ -1046,8 +1068,44 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
 
         return super.processKeyBinding(ks, ke, condition, pressed);
     }
+    /**
+     * up cursor 
+     */
+    public void upCursor(){
+    	upCursor(1);
+    }
+    /**
+     * up cursor 
+     * @param row up count
+     */
+    public void upCursor(int row){
+    	int newRow = currentRow - row;
+    	if( newRow < 1 ){
+    		changeSelection(0, 0, false, false);
+    	}else{
+    		changeSelection(newRow, 0, false, false);
+    	}
+    }
 
+    /**
+     * down cursor 
+     */
+    public void downCursor(){
+    	downCursor(1);
+    }
 
+    /**
+     * down cursor 
+     * @param row down count
+     */
+    public void downCursor(int row){
+    	int newRow = currentRow + row;
+    	if( newRow > getRowCount()-1 ){
+    		changeSelection(getRowCount()-1, 0, false, false);
+    	}else{
+    		changeSelection(newRow, 0, false, false);
+    	}
+    }
     /**
      * Overrides the changeSelection method from JTable to track the current selected row (the one that has focus)
      * and fire a {@link com.mucommander.ui.event.TableSelectionListener#selectedFileChanged(FileTable)} event
@@ -1521,6 +1579,20 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
         /** Icon that is used to indicate in the status bar that quick search has found a match */
         private final static String QUICK_SEARCH_OK_ICON = "quick_search_ok.png";
 
+        /** migemo uses */
+        Pattern migemoPattern = null;
+        boolean registedQuickSearchStartAction = ActionKeymap.registedQuickSearchStartAction(); 
+
+        /**
+         * precompile pattern uses Migemo
+         * @param word inputString
+         */
+        private void compileMigemoPattern(String word) {
+            if (migemoLoaded) {
+                String reg = Migemo.lookup(word);
+                migemoPattern = Pattern.compile(reg, Pattern.CASE_INSENSITIVE);
+            }
+        }
 
         /**
          * Creates a new QuickSearch instance, only one instance per FileTable should be created.
@@ -1543,6 +1615,13 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
 
             // Repaint the table to add the 'dim' effect on non-matching files
             FileTable.this.folderPanel.dimBackground();
+
+            FileTable.this.repaint();
+            // Find the row that best matches the new search string and select it
+            mainFrame.getStatusBar().setStatusInfo("start search ...");
+            compileMigemoPattern(searchString);
+            // Update last search string's change timestamp
+            lastSearchStringChange = System.currentTimeMillis();
         }
 
         /**
@@ -1609,13 +1688,33 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
                     break;
 
                 file = tableModel.getFileAtRow(i);
-                filename = (i==0 && tableModel.hasParentFolder())?"..":file.getName();
+                if( i==0 && tableModel.hasParentFolder() ){
+                    continue;
+                }
+                filename = file.getName();
                 filenameLen = filename.length();
+
+
+                if (migemoLoaded) {
+                    Matcher match = migemoPattern.matcher(filename);
+                    if (match.find()) {
+                        startsWithCaseMatch = i;
+                        break;
+                    }
+                    continue;
+                }
 
                 // No need to compare strings if quick search string is longer than filename,
                 // they won't match
                 if(filenameLen<searchStringLen)
                     continue;
+
+                // Compare quick search string against
+                if (filename.startsWith(searchString)) {
+                    // We've got the best match we could ever have, let's get out of this loop!
+                    startsWithCaseMatch = i;
+                    break;
+                }
 
                 // Compare quick search string against
                 if (filename.startsWith(searchString)) {
@@ -1696,7 +1795,13 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
          * @return true if the current quick search string matches the given filename
          */
         public boolean matches(String filename) {
-            return isActive() && filename.toLowerCase().indexOf(searchString.toLowerCase())!=-1;
+            if(migemoLoaded){
+                Matcher match = migemoPattern.matcher(filename);
+                return isActive() && match.find();
+            }else{
+                return isActive() && filename.toLowerCase().indexOf(searchString.toLowerCase())!=-1;
+            }
+
         }
 
 
@@ -1718,7 +1823,7 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
                 return false;
 
             char keyChar = e.getKeyChar();
-            return keyChar>=32 && keyChar!=127 && Character.isDefined(keyChar);
+            return keyChar>=32 && keyChar!=127 && keyChar != '/' && keyChar != ' ' && Character.isDefined(keyChar);
         }
 
 
@@ -1763,8 +1868,10 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
                 if(ActionKeymap.isKeyStrokeRegistered(KeyStroke.getKeyStrokeForEvent(e)))
                     return;
 
-                // Start the quick search and continue to process the current key event
-                start();
+                if( mainFrame.isQuickSearchActive() ){
+                    // Start the quick search and continue to process the current key event
+                	start();
+                }
             }
 
             // At this point, quick search is active
@@ -1785,8 +1892,11 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
                 // the cancel() method will be called, and repainting twice would result in an
                 // unpleasant graphical artifact.
                 searchString = searchString.substring(0, searchStringLen-1);
-                if(searchString.length() != 0)
+                if(searchString.length() != 0) {
+                    compileMigemoPattern(searchString);
                     FileTable.this.repaint();
+                    findMatch(0, true, true);
+                }
 
                 // Find the row that best matches the new search string and select it
                 findMatch(0, true, true);
@@ -1812,13 +1922,19 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
                 else
                     findMatch(currentRow+1, true, false);
             }
+            // mark file and down cursor
+            else if(keyChar == ' ' ){
+                mainFrame.getActiveTable().markSelectedFile();
+            }
             // If no modifier other than Shift is pressed and the typed character is not a control character (space is ok)
             // and a valid Unicode character, add it to the current search string
-            else if(isValidQuickSearchInput(e)) {
+            else if(isActive() && isValidQuickSearchInput(e)) {
                 // Update search string with the key that has just been typed
                 // Since the search string has been updated, match information has changed as well
                 // and we need to repaint the table.
                 searchString += keyChar;
+
+                compileMigemoPattern(searchString);
                 FileTable.this.repaint();
 
                 // Find the row that best matches the new search string and select it

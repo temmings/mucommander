@@ -326,6 +326,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           <method name="*"/>
           <constructor name="*"/>
       </keep>
+      <!-- Lha libs -->
+      <keep name="jp.gr.java_conf.dangan.**">
+          <field name="*"/>
+          <method name="*"/>
+          <constructor name="*"/>
+      </keep>
     </proguard>
   </target>
 

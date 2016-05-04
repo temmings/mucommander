@@ -31,6 +31,7 @@ import java.awt.event.KeyEvent;
  */
 
 public class TextFieldCompletion extends CompletionType {
+	private boolean enableTabComplate = false;
 	
     private class ShowingThreadImp extends ShowingThread {
     	public ShowingThreadImp(int delay) {
@@ -55,7 +56,9 @@ public class TextFieldCompletion extends CompletionType {
 	            		list.ensureIndexIsVisible(0);
 	            		synchronized(popup) {
 		            		popup.show(autocompletedtextComp.getTextComponent(), x, autocompletedtextComp.getHeight());
-		            		
+		            		if(delayTime == 0){
+		            			selectNextPossibleValue();
+		            		}
 		            		// probably because of swing's bug, sometimes the popup window looks
 		            		// as a gray rectangle - repainting solves it.
 		            		popup.repaint();
@@ -65,16 +68,32 @@ public class TextFieldCompletion extends CompletionType {
 	        }
 		}
     }
-        
+
     public TextFieldCompletion(AutocompleterTextComponent comp, Completer completer){
+    	this(comp, completer, false);
+    }
+
+    public TextFieldCompletion(AutocompleterTextComponent comp, Completer completer, boolean pEnableTabComplete ){
     	super(comp, completer);
+    	this.enableTabComplate = pEnableTabComplete;
 
     	autocompletedtextComp.getDocument().addDocumentListener(documentListener);
+    	if(enableTabComplate){
+    		comp.getTextComponent().setFocusTraversalKeysEnabled(false);
+    	}
 
-        autocompletedtextComp.addKeyListener(new KeyAdapter() {
+    	autocompletedtextComp.addKeyListener(new KeyAdapter() {
         	public void keyPressed(KeyEvent keyEvent) {        		
-                
-                switch (keyEvent.getKeyCode()) {
+        		int keyCode = keyEvent.getKeyCode();
+        		if( enableTabComplate && keyCode == KeyEvent.VK_TAB ){
+        			if( keyEvent.isShiftDown() ){
+        				keyCode = KeyEvent.VK_UP;
+        			}else{
+        				keyCode = KeyEvent.VK_DOWN;
+        			}
+        		}
+        		
+        		switch (keyCode) {
                 case KeyEvent.VK_ENTER:
                 	if (isItemSelectedAtPopupList()) {
                 		hideAutocompletionPopup();

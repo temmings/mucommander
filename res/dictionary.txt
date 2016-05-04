@@ -5563,7 +5563,7 @@ file_menu:KO:파일
 file_menu:pt_BR:Arquivo
 file_menu:NL:Bestand
 file_menu:SK:Súbor
-file_menu:JA:ファイル
+file_menu:JA:Fファイル
 file_menu:SV:Arkiv
 file_menu:DA:Filer
 file_menu:UA:Файл
@@ -5607,7 +5607,7 @@ mark_menu:KO:선택
 mark_menu:pt_BR:Marcar
 mark_menu:NL:Markeren
 mark_menu:SK:Označiť
-mark_menu:JA:マーク
+mark_menu:JA:Mマーク
 mark_menu:SV:Markera
 mark_menu:DA:Marker
 mark_menu:UA:Відмітити
@@ -5629,7 +5629,7 @@ view_menu:KO:보기
 view_menu:pt_BR:Ver
 view_menu:NL:Beeld
 view_menu:SK:Zobraziť
-view_menu:JA:表示
+view_menu:JA:V表示
 view_menu:SV:Visa
 view_menu:DA:Vis
 view_menu:UA:Перегляд
@@ -5673,7 +5673,7 @@ go_menu:pt_BR:Ir
 go_menu:NL:Toepassen
 go_menu:SK:Prejsť
 go_menu:HU:Ugrás
-go_menu:JA:移動
+go_menu:JA:M移動
 go_menu:SV:Gå
 go_menu:DA:Gå
 go_menu:UA:Перейти
@@ -5696,7 +5696,7 @@ bookmarks_menu:pt_BR:Favoritos
 bookmarks_menu:NL:Bladwijzers
 bookmarks_menu:SK:Záložky
 bookmarks_menu:HU:Könyvjelzők
-bookmarks_menu:JA:ブックマーク
+bookmarks_menu:JA:Bブックマーク
 bookmarks_menu:SV:Bokmärken
 bookmarks_menu:DA:Bogmærker
 bookmarks_menu:UA:Закладки
@@ -5774,7 +5774,7 @@ window_menu:KO:윈도우
 window_menu:pt_BR:Janela
 window_menu:NL:Venster
 window_menu:SK:Okno
-window_menu:JA:ウィンドウ
+window_menu:JA:Wウィンドウ
 window_menu:SV:Fönster
 window_menu:DA:Vindue
 window_menu:UA:Вікно
@@ -5796,7 +5796,7 @@ help_menu:KO:도움말
 help_menu:pt_BR:Ajuda
 help_menu:NL:Help
 help_menu:SK:Pomocník
-help_menu:JA:ヘルプ
+help_menu:JA:Hヘルプ
 help_menu:SV:Hjälp
 help_menu:DA:Hjælp
 help_menu:UA:Допомога

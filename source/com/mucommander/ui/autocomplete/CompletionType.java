@@ -312,13 +312,13 @@ public abstract class CompletionType {
      * currently selected item is already the last item. 
      */ 
     protected void selectNextPossibleValue(){ 
-        int si = list.getSelectedIndex(); 
+    	int nextIndex = list.getSelectedIndex() + 1;
  
-        if(si < list.getModel().getSize() - 1){
-        	int nextIndex = si + 1;
-            list.setSelectedIndex(nextIndex); 
-            list.ensureIndexIsVisible(nextIndex); 
-        } 
+        if( nextIndex >= list.getModel().getSize() ){
+        	nextIndex = 0;
+        }
+        list.setSelectedIndex(nextIndex); 
+        list.ensureIndexIsVisible(nextIndex);  
     } 
  
     /** 
@@ -326,12 +326,13 @@ public abstract class CompletionType {
      * currently selected item is already the first item. 
      */ 
     protected void selectPreviousPossibleValue(){ 
-        int si = list.getSelectedIndex(); 
- 
-        if(si > 0){ 
-        	int nextIndex = si - 1;
-            list.setSelectedIndex(nextIndex); 
-            list.ensureIndexIsVisible(nextIndex); 
-        } 
+    	int nextIndex = list.getSelectedIndex() - 1;
+
+    	if(nextIndex < 0){ 
+        	nextIndex = list.getModel().getSize() - 1;
+        }
+
+    	list.setSelectedIndex(nextIndex); 
+        list.ensureIndexIsVisible(nextIndex); 
     }
 }

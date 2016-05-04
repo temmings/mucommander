@@ -393,6 +393,14 @@ public class ActionKeymap extends DefaultHandler {
         acceleratorMap.put(keyStroke, actionClass);
     }
 
+    /**
+     * check Registed StartQuickSearchAction
+     * @return StartQuickSearchAction write on action-keymap.xml
+     */
+    public static boolean registedQuickSearchStartAction(){
+        return ActionKeymap.getAccelerator(StartQuickSearchAction.class) != null;
+    }
+
     
     ///////////////////////////////////
     // ContentHandler implementation //

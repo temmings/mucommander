@@ -18,32 +18,20 @@
 
 package com.mucommander.ui.action;
 
-import com.mucommander.file.filter.AttributeFileFilter;
-import com.mucommander.file.util.FileSet;
-import com.mucommander.ui.dialog.file.UnpackDialog;
 import com.mucommander.ui.main.MainFrame;
 
 import java.util.Hashtable;
 
 /**
- * This action pops up the 'Unpack files' dialog that allows to unpack the currently marked files.
- *
- * @author Maxence Bernard
+ * It makes it to the same directory as both. 
  */
-public class UnpackAction extends SelectedFilesAction implements InvokesDialog {
+public class SetSameFolderAsBothAction extends MuAction {
 
-    public UnpackAction(MainFrame mainFrame, Hashtable properties) {
+    public SetSameFolderAsBothAction(MainFrame mainFrame, Hashtable properties) {
         super(mainFrame, properties);
-
-        setSelectedFileFilter(new AttributeFileFilter(AttributeFileFilter.ARCHIVE));
     }
 
     public void performAction() {
-        FileSet files = mainFrame.getActiveTable().getSelectedFiles();
-        String newDir = files.fileAt(0).getNameWithoutExtension();
-        if(files.size()>0){
-        	//mainFrame.getInactiveTable().
-            new UnpackDialog(mainFrame, files, false, newDir);
-        }
+        mainFrame.setSameFolderAsBoth();
     }
 }

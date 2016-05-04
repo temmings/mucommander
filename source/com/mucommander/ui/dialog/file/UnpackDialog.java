@@ -19,7 +19,10 @@
 
 package com.mucommander.ui.dialog.file;
 
+import java.io.IOException;
+
 import com.mucommander.file.AbstractFile;
+import com.mucommander.file.FileFactory;
 import com.mucommander.file.util.FileSet;
 import com.mucommander.file.util.PathUtils;
 import com.mucommander.job.CopyJob;
@@ -43,27 +46,63 @@ public class UnpackDialog extends TransferDestinationDialog {
      * @param isShiftDown true if shift key was pressed when invoking this dialog
      */
     public UnpackDialog(MainFrame mainFrame, FileSet files, boolean isShiftDown) {
+        this(mainFrame, files, isShiftDown, null );
+    }
+
+    /**
+     * Creates and displays a new UnpackDialog.
+     *
+     * @param mainFrame the main frame this dialog is attached to
+     * @param files the set of files to unpack
+     * @param isShiftDown true if shift key was pressed when invoking this dialog
+     * @param postFixFolderName append unpack target folder name
+     */
+    public UnpackDialog(MainFrame mainFrame, FileSet files, boolean isShiftDown, String postFixFolderName ) {
         super(mainFrame, files,
               MuAction.getStandardLabel(com.mucommander.ui.action.UnpackAction.class),
               Translator.get("unpack_dialog.destination"),
               Translator.get("unpack_dialog.unpack"),
               Translator.get("unpack_dialog.error_title"));
-	    
+        
         AbstractFile destFolder = mainFrame.getInactiveTable().getCurrentFolder();
         String fieldText;
         if(isShiftDown)
             fieldText = ".";
-        else
-            fieldText = destFolder.getAbsolutePath(true);
-		
+        else{
+            if( postFixFolderName == null ){
+                fieldText = destFolder.getAbsolutePath(true);
+            }else{
+                fieldText = PathUtils.resolveDestination(postFixFolderName, destFolder).getDestinationFile().getAbsolutePath(true);
+            }
+        }
+        
         setTextField(fieldText);
-		
+        
         showDialog();
     }
 
     protected void startJob(PathUtils.ResolvedDestination resolvedDest, int defaultFileExistsAction, boolean verifyIntegrity) {
         ProgressDialog progressDialog = new ProgressDialog(mainFrame, Translator.get("unpack_dialog.unpacking"));
-
+        AbstractFile destFolder = FileFactory.getFile(pathField.getText());
+        if( !destFolder.exists() ){
+            try {
+                destFolder.mkdir();
+            }catch(IOException e) {
+                // Unable to create folder
+                showErrorDialog(errorDialogTitle, Translator.get("cannot_create_folder", destFolder.getName()) );
+                return;
+            }
+        }
+        resolvedDest = PathUtils.resolveDestination(destFolder.getAbsolutePath(), resolvedDest.getDestinationFolder());
+        /*
+        String newDir = files.fileAt(0).getNameWithoutExtension();
+        try{
+            resolvedDest.getDestinationFolder().mkdir(newDir);
+            resolvedDest = PathUtils.resolveDestination(newDir, resolvedDest.getDestinationFolder());
+        }catch (IOException io) {
+            // output log ...
+        }
+        */
         CopyJob job = new CopyJob(
                 progressDialog,
                 mainFrame,

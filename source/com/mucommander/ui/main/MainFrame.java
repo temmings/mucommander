@@ -82,6 +82,9 @@ public class MainFrame extends JFrame implements LocationListener {
 
     /** Is this MainFrame active in the foreground ? */
     private boolean foregroundActive;
+    
+    /** quick search mode */
+    private boolean quickSearchActive = true;
 
     /** Contains all registered ActivePanelListener instances, stored as weak references */
     private WeakHashMap activePanelListeners = new WeakHashMap();
@@ -185,6 +188,11 @@ public class MainFrame extends JFrame implements LocationListener {
 
         // Set the custom FocusTraversalPolicy that manages focus for both FolderPanel and their subcomponents.
         setFocusTraversalPolicy(new CustomFocusTraversalPolicy());
+        
+        // QuickSearchStartAction in action-keymap.xml
+        if( ActionKeymap.registedQuickSearchStartAction() ){
+            quickSearchActive = false;
+        }
     }
 
     private MainFrame() {
@@ -551,6 +559,12 @@ public class MainFrame extends JFrame implements LocationListener {
     public void setSameFolder() {
         (activeTable == leftTable ? rightTable : leftTable).getFolderPanel().tryChangeCurrentFolder(activeTable.getCurrentFolder());
     }
+    /**
+     * It makes it to the same directory as both. 
+     */
+    public void setSameFolderAsBoth() {
+    	activeTable.getFolderPanel().tryChangeCurrentFolder(getInactivePanel().getCurrentFolder());
+    }
 
 
     /**
@@ -796,5 +810,21 @@ public class MainFrame extends JFrame implements LocationListener {
     public void setAutoSizeColumnsEnabled(boolean b) {
         leftTable.setAutoSizeColumnsEnabled(b);
         rightTable.setAutoSizeColumnsEnabled(b);
+    }
+
+    /**
+     * quickSearchActive getter
+     * @return quickSearchActive
+     */
+    public boolean isQuickSearchActive() {
+        return quickSearchActive;
+    }
+
+    /**
+     * quickSearchActive setter
+     * @param quickSearchActive setting quickSearchActive
+     */
+    public void setQuickSearchActive(boolean quickSearchActive) {
+        this.quickSearchActive = quickSearchActive;
     }
 }
